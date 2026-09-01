@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="100%" height="100%" style="background-color: #0f172a; font-family: system-ui, sans-serif;">
+<text x="400.0" y="25" text-anchor="middle" fill="#f8fafc" font-size="18" font-weight="bold">Puget Sound Salmon Catch Trends (Last 15 Days)</text>
+<line x1="60" y1="340.0" x2="770" y2="340.0" stroke="#334155" stroke-dasharray="4,4" />
+<text x="50" y="344.0" text-anchor="end" fill="#94a3b8" font-size="12">0</text>
+<line x1="60" y1="279.7463002114165" x2="770" y2="279.7463002114165" stroke="#334155" stroke-dasharray="4,4" />
+<text x="50" y="283.7463002114165" text-anchor="end" fill="#94a3b8" font-size="12">95</text>
+<line x1="60" y1="220.12684989429175" x2="770" y2="220.12684989429175" stroke="#334155" stroke-dasharray="4,4" />
+<text x="50" y="224.12684989429175" text-anchor="end" fill="#94a3b8" font-size="12">189</text>
+<line x1="60" y1="159.87315010570828" x2="770" y2="159.87315010570828" stroke="#334155" stroke-dasharray="4,4" />
+<text x="50" y="163.87315010570828" text-anchor="end" fill="#94a3b8" font-size="12">284</text>
+<line x1="60" y1="100.25369978858353" x2="770" y2="100.25369978858353" stroke="#334155" stroke-dasharray="4,4" />
+<text x="50" y="104.25369978858353" text-anchor="end" fill="#94a3b8" font-size="12">378</text>
+<line x1="60" y1="40.00000000000006" x2="770" y2="40.00000000000006" stroke="#334155" stroke-dasharray="4,4" />
+<text x="50" y="44.00000000000006" text-anchor="end" fill="#94a3b8" font-size="12">473</text>
+<text x="60.0" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 20</text>
+<text x="114.61538461538461" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 21</text>
+<text x="169.23076923076923" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 22</text>
+<text x="223.84615384615384" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 23</text>
+<text x="278.46153846153845" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 24</text>
+<text x="333.0769230769231" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 25</text>
+<text x="387.6923076923077" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 26</text>
+<text x="442.30769230769226" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 27</text>
+<text x="496.9230769230769" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 28</text>
+<text x="551.5384615384615" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 29</text>
+<text x="606.1538461538462" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 30</text>
+<text x="660.7692307692307" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Jul 31</text>
+<text x="715.3846153846154" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Aug 01</text>
+<text x="770.0" y="380" text-anchor="middle" fill="#94a3b8" font-size="11">Aug 02</text>
+<polyline fill="none" stroke="#f59e0b" stroke-width="3" points="60.0,337.4630021141649 114.61538461538461,268.9640591966173 169.23076923076923,331.75475687103597 223.84615384615384,127.52642706131081 278.46153846153845,90.10570824524316 333.0769230769231,115.47568710359411 387.6923076923077,67.27272727272731 442.30769230769226,136.40591966173363 496.9230769230769,340.0 551.5384615384615,305.75052854122623 606.1538461538462,262.6215644820296 660.7692307692307,75.51797040169134 715.3846153846154,231.5433403805497 770.0,127.52642706131081" />
+<circle cx="60.0" cy="337.4630021141649" r="4" fill="#f59e0b" />
+<circle cx="114.61538461538461" cy="268.9640591966173" r="4" fill="#f59e0b" />
+<circle cx="169.23076923076923" cy="331.75475687103597" r="4" fill="#f59e0b" />
+<circle cx="223.84615384615384" cy="127.52642706131081" r="4" fill="#f59e0b" />
+<circle cx="278.46153846153845" cy="90.10570824524316" r="4" fill="#f59e0b" />
+<circle cx="333.0769230769231" cy="115.47568710359411" r="4" fill="#f59e0b" />
+<circle cx="387.6923076923077" cy="67.27272727272731" r="4" fill="#f59e0b" />
+<circle cx="442.30769230769226" cy="136.40591966173363" r="4" fill="#f59e0b" />
+<circle cx="496.9230769230769" cy="340.0" r="4" fill="#f59e0b" />
+<circle cx="551.5384615384615" cy="305.75052854122623" r="4" fill="#f59e0b" />
+<circle cx="606.1538461538462" cy="262.6215644820296" r="4" fill="#f59e0b" />
+<circle cx="660.7692307692307" cy="75.51797040169134" r="4" fill="#f59e0b" />
+<circle cx="715.3846153846154" cy="231.5433403805497" r="4" fill="#f59e0b" />
+<circle cx="770.0" cy="127.52642706131081" r="4" fill="#f59e0b" />
+<polyline fill="none" stroke="#06b6d4" stroke-width="3" points="60.0,318.4355179704017 114.61538461538461,318.4355179704017 169.23076923076923,338.7315010570824 223.84615384615384,261.3530655391121 278.46153846153845,224.56659619450318 333.0769230769231,274.6723044397463 387.6923076923077,291.16279069767444 442.30769230769226,282.2832980972516 496.9230769230769,340.0 551.5384615384615,328.58350951374206 606.1538461538462,320.9725158562368 660.7692307692307,267.6955602536998 715.3846153846154,220.76109936575054 770.0,114.84143763213532" />
+<circle cx="60.0" cy="318.4355179704017" r="4" fill="#06b6d4" />
+<circle cx="114.61538461538461" cy="318.4355179704017" r="4" fill="#06b6d4" />
+<circle cx="169.23076923076923" cy="338.7315010570824" r="4" fill="#06b6d4" />
+<circle cx="223.84615384615384" cy="261.3530655391121" r="4" fill="#06b6d4" />
+<circle cx="278.46153846153845" cy="224.56659619450318" r="4" fill="#06b6d4" />
+<circle cx="333.0769230769231" cy="274.6723044397463" r="4" fill="#06b6d4" />
+<circle cx="387.6923076923077" cy="291.16279069767444" r="4" fill="#06b6d4" />
+<circle cx="442.30769230769226" cy="282.2832980972516" r="4" fill="#06b6d4" />
+<circle cx="496.9230769230769" cy="340.0" r="4" fill="#06b6d4" />
+<circle cx="551.5384615384615" cy="328.58350951374206" r="4" fill="#06b6d4" />
+<circle cx="606.1538461538462" cy="320.9725158562368" r="4" fill="#06b6d4" />
+<circle cx="660.7692307692307" cy="267.6955602536998" r="4" fill="#06b6d4" />
+<circle cx="715.3846153846154" cy="220.76109936575054" r="4" fill="#06b6d4" />
+<circle cx="770.0" cy="114.84143763213532" r="4" fill="#06b6d4" />
+<rect x="560" y="10" width="12" height="12" fill="#f59e0b" rx="2"/>
+<text x="580" y="21" fill="#f8fafc" font-size="13">Chinook (3062)</text>
+<rect x="680" y="10" width="12" height="12" fill="#06b6d4" rx="2"/>
+<text x="700" y="21" fill="#f8fafc" font-size="13">Coho (1352)</text>
+</svg>

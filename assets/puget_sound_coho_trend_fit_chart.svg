@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%" style="background-color: #0f172a; font-family: system-ui, sans-serif;">
+<text x="480.0" y="26" text-anchor="middle" fill="#f8fafc" font-size="18" font-weight="bold">Puget Sound Coho CPUE with Statistical Trend Fit Line</text>
+<text x="480.0" y="45" text-anchor="middle" fill="#38bdf8" font-size="12">Dotted Yellow Line = Best-Fit Linear Regression (+0.009 CPUE/day) • Ignoring Non-Sampled Zero Days</text>
+<line x1="60" y1="420.0" x2="760" y2="420.0" stroke="#334155" stroke-dasharray="3,3" />
+<text x="52" y="424.0" text-anchor="end" fill="#94a3b8" font-size="11">0.00</text>
+<line x1="60" y1="333.87263214865595" x2="760" y2="333.87263214865595" stroke="#334155" stroke-dasharray="3,3" />
+<text x="52" y="337.87263214865595" text-anchor="end" fill="#94a3b8" font-size="11">0.12</text>
+<line x1="60" y1="240.56798364303322" x2="760" y2="240.56798364303322" stroke="#334155" stroke-dasharray="3,3" />
+<text x="52" y="244.56798364303322" text-anchor="end" fill="#94a3b8" font-size="11">0.25</text>
+<line x1="60" y1="154.4406157916892" x2="760" y2="154.4406157916892" stroke="#334155" stroke-dasharray="3,3" />
+<text x="52" y="158.4406157916892" text-anchor="end" fill="#94a3b8" font-size="11">0.37</text>
+<line x1="60" y1="68.31324794034515" x2="760" y2="68.31324794034515" stroke="#334155" stroke-dasharray="3,3" />
+<text x="52" y="72.31324794034515" text-anchor="end" fill="#94a3b8" font-size="11">0.49</text>
+<text x="60.0" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 19</text>
+<text x="111.85185185185185" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 21</text>
+<text x="163.7037037037037" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 23</text>
+<text x="215.55555555555557" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 25</text>
+<text x="267.4074074074074" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 27</text>
+<text x="319.2592592592593" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 29</text>
+<text x="371.11111111111114" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Jul 31</text>
+<text x="422.962962962963" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 02</text>
+<text x="474.81481481481484" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 05</text>
+<text x="526.6666666666667" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 07</text>
+<text x="578.5185185185186" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 09</text>
+<text x="630.3703703703704" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 11</text>
+<text x="682.2222222222223" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 13</text>
+<text x="734.0740740740741" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 15</text>
+<text x="760.0" y="460" text-anchor="middle" fill="#94a3b8" font-size="10">Aug 16</text>
+<polyline fill="none" stroke="#06b6d4" stroke-width="2.5" points="60.0,362.35115940338414 85.92592592592592,367.06560905738075 111.85185185185185,347.1559575386642 137.77777777777777,400.86058492192353 163.7037037037037,334.5889826170293 189.62962962962965,328.78037157271524 215.55555555555557,361.32857877851563 241.4814814814815,385.8857647913915 267.4074074074074,363.7439673092714 293.33333333333337,420.0 319.2592592592593,308.6284036405034 345.1851851851852,369.57414060225756 371.11111111111114,351.50790714842327 397.03703703703707,420.0 422.962962962963,420.0 448.8888888888889,420.0 474.81481481481484,420.0 500.74074074074076,420.0 526.6666666666667,420.0 552.5925925925926,420.0 578.5185185185186,420.0 604.4444444444445,274.44675596218076 630.3703703703704,420.0 656.2962962962963,354.7519940520121 682.2222222222223,154.09013287226577 708.1481481481482,157.63486930189424 734.0740740740741,111.30434782608694 760.0,227.29940450400835" />
+<circle cx="60.0" cy="362.35115940338414" r="3.5" fill="#06b6d4" />
+<circle cx="85.92592592592592" cy="367.06560905738075" r="3.5" fill="#06b6d4" />
+<circle cx="111.85185185185185" cy="347.1559575386642" r="3.5" fill="#06b6d4" />
+<circle cx="137.77777777777777" cy="400.86058492192353" r="3.5" fill="#06b6d4" />
+<circle cx="163.7037037037037" cy="334.5889826170293" r="3.5" fill="#06b6d4" />
+<circle cx="189.62962962962965" cy="328.78037157271524" r="3.5" fill="#06b6d4" />
+<circle cx="215.55555555555557" cy="361.32857877851563" r="3.5" fill="#06b6d4" />
+<circle cx="241.4814814814815" cy="385.8857647913915" r="3.5" fill="#06b6d4" />
+<circle cx="267.4074074074074" cy="363.7439673092714" r="3.5" fill="#06b6d4" />
+<circle cx="319.2592592592593" cy="308.6284036405034" r="3.5" fill="#06b6d4" />
+<circle cx="345.1851851851852" cy="369.57414060225756" r="3.5" fill="#06b6d4" />
+<circle cx="371.11111111111114" cy="351.50790714842327" r="3.5" fill="#06b6d4" />
+<circle cx="604.4444444444445" cy="274.44675596218076" r="3.5" fill="#06b6d4" />
+<circle cx="656.2962962962963" cy="354.7519940520121" r="3.5" fill="#06b6d4" />
+<circle cx="682.2222222222223" cy="154.09013287226577" r="3.5" fill="#06b6d4" />
+<circle cx="708.1481481481482" cy="157.63486930189424" r="3.5" fill="#06b6d4" />
+<circle cx="734.0740740740741" cy="111.30434782608694" r="3.5" fill="#06b6d4" />
+<circle cx="760.0" cy="227.29940450400835" r="3.5" fill="#06b6d4" />
+<line x1="60.0" y1="398.37310790662497" x2="760.0" y2="226.44421722256004" stroke="#facc15" stroke-width="3.5" stroke-dasharray="6,5" />
+<circle cx="60.0" cy="398.37310790662497" r="4.5" fill="#facc15" />
+<circle cx="760.0" cy="226.44421722256004" r="4.5" fill="#facc15" />
+<rect x="775" y="75" width="170" height="80" fill="#0f172a" opacity="0.9" rx="6" stroke="#334155" />
+<line x1="785" y1="95" x2="805" y2="95" stroke="#06b6d4" stroke-width="2.5" />
+<circle cx="795" cy="95" r="3" fill="#06b6d4" />
+<text x="815" y="99" fill="#f8fafc" font-size="11">Daily Coho CPUE</text>
+<line x1="785" y1="120" x2="805" y2="120" stroke="#facc15" stroke-width="3.5" stroke-dasharray="4,3" />
+<text x="815" y="124" fill="#facc15" font-size="11" font-weight="bold">Trend Fit Line</text>
+<text x="815" y="138" fill="#94a3b8" font-size="10">(+0.009 CPUE/day)</text>
+</svg>
