@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puget Sound Salmon Creel Dashboard</title>
+  <meta name="description" content="Daily Puget Sound salmon catch, effort and catch-per-angler from WDFW creel reports, with trend forecasts by marine area.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎣</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --app-card: #1e293b;
+      --app-border: #334155;
+      --app-muted-foreground: #94a3b8;
+    }
+    body { background: #0f172a; color: #f8fafc; }
+    .chart-wrap { height: 24rem; }
+    @media (max-width: 640px) { .chart-wrap { height: 18rem; } }
+    #chartTooltip { pointer-events: none; }
+  </style>
+</head>
+<body class="font-sans antialiased p-3 sm:p-4 space-y-5 max-w-[1600px] mx-auto">
+
+  <!-- Header Card -->
+  <div class="bg-[var(--app-card)] border border-[var(--app-border)] rounded-xl p-4 sm:p-5 shadow-lg">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2">
+          <span>🎣</span> Puget Sound Salmon Creel Analytics
+        </h1>
+        <p class="text-sm text-[var(--app-muted-foreground)] mt-1">
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/30">● Data through <span id="dataThrough"></span></span>
+          <span class="ml-1">· <span id="recordTotal"></span> dockside samples since <span id="seasonStart"></span></span>
+        </p>
+        <p class="text-xs text-slate-500 mt-1">
+          Source: <a class="underline hover:text-slate-300" href="https://wdfw.wa.gov/fishing/reports/creel/puget" target="_blank" rel="noopener">WDFW Puget Sound creel reports</a> (raw, subject to QA/QC revision) ·
+          Rebuilt <span id="generatedAt"></span> ·
+          <a class="underline hover:text-slate-300" href="https://github.com/SinaChavoshi/puget-sound-creel-dashboard" target="_blank" rel="noopener">GitHub</a>
+        </p>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex flex-wrap items-end gap-3">
+        <div>
+          <label for="speciesModeSelect" class="block text-xs font-semibold text-slate-400 mb-1">Species</label>
+          <select id="speciesModeSelect" class="bg-slate-900 border border-slate-700 text-slate-100 text-sm rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="COHO" selected>🐟 Coho</option>
+            <option value="CHINOOK">👑 Chinook (King)</option>
+            <option value="DUAL">👑 Kings + 🐟 Coho</option>
+          </select>
+        </div>
+        <div>
+          <label for="metricModeSelect" class="block text-xs font-semibold text-slate-400 mb-1">Metric</label>
+          <select id="metricModeSelect" class="bg-slate-900 border border-slate-700 text-slate-100 text-sm rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="CPUE_ANG" selected>Fish per angler (CPUE)</option>
+            <option value="RAW">Fish landed (raw count)</option>
+            <option value="CPUE_BOAT">Fish per boat trip</option>
+            <option value="EFFORT">Anglers sampled (effort)</option>
+          </select>
+        </div>
+        <div>
+          <label for="displayModeSelect" class="block text-xs font-semibold text-slate-400 mb-1">Display</label>
+          <select id="displayModeSelect" class="bg-slate-900 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-yellow-500 font-medium text-yellow-300">
+            <option value="BOTH" selected>Actual + trend/forecast</option>
+            <option value="ACTUAL">Actual only</option>
+            <option value="TREND">Trend/forecast only</option>
+          </select>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-slate-300 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 cursor-pointer select-none">
+          <input id="smoothToggle" type="checkbox" checked class="rounded bg-slate-950 border-slate-600 text-blue-500 focus:ring-0">
+          7-day smoothing
+        </label>
+      </div>
+    </div>
+
+    <!-- Area filter -->
+    <div class="mt-4 pt-4 border-t border-slate-800 space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Catch areas to compare</span>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button id="btnSelectAll" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Select all</button>
+          <button id="btnClearAll" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Clear</button>
+          <span class="text-slate-600">|</span>
+          <span class="text-slate-400 font-medium">Presets:</span>
+          <button data-preset="central" class="px-2.5 py-1 rounded bg-blue-950/60 hover:bg-blue-900/80 text-blue-300 border border-blue-800/60 transition">Central Sound (9, 10, 11)</button>
+          <button data-preset="straits" class="px-2.5 py-1 rounded bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 transition">Straits (5, 6, 7, Bellingham)</button>
+          <button data-preset="hotspots" class="px-2.5 py-1 rounded bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-800/60 transition">Top Coho (5, 8-2, 9, 10)</button>
+        </div>
+      </div>
+      <div id="areaPillsContainer" class="flex flex-wrap gap-2 pt-1 max-h-36 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+    <div class="border border-amber-500/30 rounded-xl p-4 shadow-sm bg-gradient-to-br from-slate-900 to-amber-950/20">
+      <div class="flex justify-between items-start gap-2">
+        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">👑 Kings</span>
+        <span id="kingBadge" class="text-xs px-2 py-0.5 rounded bg-amber-400/10 text-amber-400 font-semibold whitespace-nowrap">0.00 / angler</span>
+      </div>
+      <div id="statKings" class="text-2xl font-bold text-slate-100 mt-2">0</div>
+      <div class="text-xs text-slate-400 mt-1">Season total, selected areas</div>
+    </div>
+    <div class="border border-cyan-500/30 rounded-xl p-4 shadow-sm bg-gradient-to-br from-slate-900 to-cyan-950/20">
+      <div class="flex justify-between items-start gap-2">
+        <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">🐟 Coho</span>
+        <span id="cohoBadge" class="text-xs px-2 py-0.5 rounded bg-cyan-400/10 text-cyan-400 font-semibold whitespace-nowrap">0.00 / angler</span>
+      </div>
+      <div id="statCoho" class="text-2xl font-bold text-slate-100 mt-2">0</div>
+      <div id="statCohoSub" class="text-xs text-slate-400 mt-1">Season total, selected areas</div>
+    </div>
+    <div class="border border-blue-500/30 rounded-xl p-4 shadow-sm bg-gradient-to-br from-slate-900 to-blue-950/20">
+      <div class="flex justify-between items-start gap-2">
+        <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">🎣 Anglers</span>
+        <span id="boatBadge" class="text-xs px-2 py-0.5 rounded bg-blue-400/10 text-blue-400 font-semibold whitespace-nowrap">0 boats</span>
+      </div>
+      <div id="statAnglers" class="text-2xl font-bold text-slate-100 mt-2">0</div>
+      <div class="text-xs text-slate-400 mt-1">Sampled, selected areas</div>
+    </div>
+    <div class="border border-yellow-500/30 rounded-xl p-4 shadow-sm bg-gradient-to-br from-slate-900 to-yellow-950/20">
+      <div class="flex justify-between items-start gap-2">
+        <span class="text-xs font-bold text-yellow-400 uppercase tracking-wider">🔮 14-day outlook</span>
+      </div>
+      <div id="statForecastSummary" class="text-base sm:text-lg font-bold text-slate-100 mt-2 leading-snug">–</div>
+      <div id="statForecastSub" class="text-xs text-slate-400 mt-1">Quadratic fit on last 35 days</div>
+    </div>
+  </div>
+
+  <!-- Main chart -->
+  <div class="bg-[var(--app-card)] border border-[var(--app-border)] rounded-xl p-4 sm:p-5 shadow-lg space-y-3">
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-semibold text-slate-100">Daily trend &amp; 14-day forecast</h2>
+        <p id="chartSub" class="text-xs text-[var(--app-muted-foreground)]">Solid = actual creel data · Dotted = trend fit and forecast · Hover for values</p>
+      </div>
+      <div id="chartLegend" class="flex flex-wrap items-center gap-3 text-xs font-medium"></div>
+    </div>
+    <div class="chart-wrap w-full relative">
+      <canvas id="mainChartCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+      <div id="chartTooltip" class="hidden absolute z-10 bg-slate-950/95 border border-slate-700 rounded-lg px-3 py-2 text-xs shadow-xl min-w-[11rem]"></div>
+    </div>
+  </div>
+
+  <!-- Region table -->
+  <div class="bg-[var(--app-card)] border border-[var(--app-border)] rounded-xl p-4 sm:p-5 shadow-lg space-y-3 overflow-hidden">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <h2 class="text-lg font-semibold text-slate-100">Selected areas: season totals &amp; recent momentum</h2>
+      <span class="text-xs text-slate-400">Momentum = last 7 days vs prior 7 days coho per angler (ending <span class="dataThroughShort"></span>)</span>
+    </div>
+    <div class="overflow-x-auto border border-slate-700/50 rounded-lg">
+      <table class="w-full text-left text-sm text-slate-300">
+        <thead class="bg-slate-900 text-xs font-semibold text-slate-400 uppercase border-b border-slate-700">
+          <tr>
+            <th class="px-4 py-3">Catch area</th>
+            <th class="px-4 py-3 text-right text-amber-400">Kings</th>
+            <th class="px-4 py-3 text-right text-cyan-400">Coho</th>
+            <th class="px-4 py-3 text-right">Anglers</th>
+            <th class="px-4 py-3 text-right text-cyan-400">Season coho/angler</th>
+            <th class="px-4 py-3 text-right text-cyan-400">Last 7d coho/angler</th>
+            <th class="px-4 py-3 text-center">Coho momentum</th>
+            <th class="px-4 py-3 text-center">Kings (last 14d)</th>
+          </tr>
+        </thead>
+        <tbody id="regionTableBody" class="divide-y divide-slate-800 font-mono"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Raw records -->
+  <div class="bg-[var(--app-card)] border border-[var(--app-border)] rounded-xl p-4 sm:p-5 shadow-lg space-y-3 overflow-hidden">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-semibold text-slate-100">Field sampling records (selected areas, newest first)</h2>
+        <span id="recordCount" class="text-xs text-slate-400"></span>
+      </div>
+      <div class="w-full sm:w-72">
+        <input id="searchInput" type="search" placeholder="Filter by ramp, date, or area..." class="w-full bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-slate-500" />
+      </div>
+    </div>
+    <div class="max-h-96 overflow-y-auto border border-slate-700/50 rounded-lg">
+      <table class="w-full text-left text-sm text-slate-300">
+        <thead class="bg-slate-900 sticky top-0 text-xs font-semibold text-slate-400 uppercase border-b border-slate-700">
+          <tr>
+            <th class="px-4 py-2.5">Date</th>
+            <th class="px-4 py-2.5">Ramp / site</th>
+            <th class="px-4 py-2.5">Catch area</th>
+            <th class="px-4 py-2.5 text-right">Anglers</th>
+            <th class="px-4 py-2.5 text-right">Boats</th>
+            <th class="px-4 py-2.5 text-right text-amber-400">Chinook</th>
+            <th class="px-4 py-2.5 text-right text-cyan-400">Coho</th>
+            <th class="px-4 py-2.5 text-right text-emerald-400">Salmon/angler</th>
+          </tr>
+        </thead>
+        <tbody id="rawTableBody" class="divide-y divide-slate-800 text-xs"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="text-center text-xs text-slate-600 pb-2">Independent project, not affiliated with WDFW. Creel samples are a subset of all fishing activity; forecasts are simple curve fits, not official predictions.</p>
+
+  <script>
+    const data = DATA_PLACEHOLDER;
+    const FIT_WINDOW = 35;
+    const RAW_LIMIT = 250;
+
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    document.getElementById('dataThrough').textContent = data.data_through;
+    document.querySelectorAll('.dataThroughShort').forEach(el => el.textContent = data.data_through);
+    document.getElementById('recordTotal').textContent = data.num_records.toLocaleString();
+    document.getElementById('seasonStart').textContent = data.season_start;
+    document.getElementById('generatedAt').textContent = data.generated_at;
+
+    const areaColors = {
+      'Area 10, Seattle-Bremerton area': '#3b82f6',
+      'Area 11, Tacoma-Vashon Island': '#ec4899',
+      'Area 9, Admiralty Inlet': '#f59e0b',
+      'Area 5, Sekiu and Pillar Point': '#ef4444',
+      'Area 8-2, Ports Susan and Gardner': '#10b981',
+      'Area 6, East Juan de Fuca Strait': '#eab308',
+      'Bellingham Bay': '#06b6d4',
+      'Quilcene, Dabob Bay': '#6366f1',
+      'Area 7, San Juan Islands': '#8b5cf6',
+      'Area 12, Hood Canal': '#14b8a6',
+      'Inner Elliot Bay Fishery Area': '#a855f7',
+      'Area 4, Eastern portion': '#f97316',
+      'Area 13, South Puget Sound': '#84cc16',
+      'Area 8-1, Deception Pass, Hope Island, and Skagit Bay': '#d946ef'
+    };
+    const fallbackColors = ['#94a3b8', '#22d3ee', '#a3e635', '#fdba74', '#c4b5fd', '#5eead4', '#fde047', '#f9a8d4'];
+    // Stable color per area regardless of selection order
+    function getAreaColor(ca) {
+      if (areaColors[ca]) return areaColors[ca];
+      const unmapped = data.catch_areas.filter(a => !areaColors[a]);
+      return fallbackColors[Math.max(0, unmapped.indexOf(ca)) % fallbackColors.length];
+    }
+    const getShortName = ca => ca.includes(',') ? ca.split(',')[0] : ca;
+
+    const presets = {
+      central: ['Area 9, Admiralty Inlet', 'Area 10, Seattle-Bremerton area', 'Area 11, Tacoma-Vashon Island'],
+      straits: ['Area 5, Sekiu and Pillar Point', 'Area 6, East Juan de Fuca Strait', 'Area 7, San Juan Islands', 'Bellingham Bay'],
+      hotspots: ['Area 5, Sekiu and Pillar Point', 'Area 8-2, Ports Susan and Gardner', 'Area 9, Admiralty Inlet', 'Area 10, Seattle-Bremerton area'],
+    };
+
+    // Selection persists in the URL hash so views can be shared/bookmarked
+    function readState() {
+      const p = new URLSearchParams(location.hash.slice(1));
+      const areas = (p.get('areas') || '').split('|').filter(a => data.catch_areas.includes(a));
+      return {
+        areas: areas.length ? areas : presets.hotspots,
+        species: p.get('species'), metric: p.get('metric'), display: p.get('display'),
+        smooth: p.get('smooth'),
+      };
+    }
+    const init = readState();
+    const selectedAreas = new Set(init.areas);
+
+    const speciesModeSelect = document.getElementById('speciesModeSelect');
+    const metricModeSelect = document.getElementById('metricModeSelect');
+    const displayModeSelect = document.getElementById('displayModeSelect');
+    const smoothToggle = document.getElementById('smoothToggle');
+    const searchInput = document.getElementById('searchInput');
+    const pillsContainer = document.getElementById('areaPillsContainer');
+    if (init.species) speciesModeSelect.value = init.species;
+    if (init.metric) metricModeSelect.value = init.metric;
+    if (init.display) displayModeSelect.value = init.display;
+    if (init.smooth !== null) smoothToggle.checked = init.smooth !== '0';
+
+    function writeState() {
+      const p = new URLSearchParams({
+        areas: [...selectedAreas].join('|'), species: speciesModeSelect.value,
+        metric: metricModeSelect.value, display: displayModeSelect.value,
+        smooth: smoothToggle.checked ? '1' : '0',
+      });
+      history.replaceState(null, '', '#' + p.toString());
+    }
+
+    function renderAreaPills() {
+      pillsContainer.innerHTML = '';
+      const sorted = [...data.catch_areas].sort((a, b) => data.region_summaries[b].total_salmon - data.region_summaries[a].total_salmon);
+      sorted.forEach(ca => {
+        const isChecked = selectedAreas.has(ca);
+        const tot = data.region_summaries[ca].total_salmon;
+        const lbl = document.createElement('label');
+        lbl.title = ca;
+        lbl.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer select-none transition border ${
+          isChecked ? 'bg-slate-800 text-slate-100 border-slate-600 shadow-sm'
+                    : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:bg-slate-800/50 hover:text-slate-300'}`;
+        lbl.innerHTML = `
+          <input type="checkbox" ${isChecked ? 'checked' : ''} class="rounded bg-slate-950 border-slate-700 text-blue-500 focus:ring-0 cursor-pointer" />
+          <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${getAreaColor(ca)}"></span>
+          <span>${esc(getShortName(ca))}</span>
+          <span class="text-[10px] text-slate-500">(${tot.toLocaleString()})</span>`;
+        lbl.querySelector('input').addEventListener('change', e => {
+          if (e.target.checked) selectedAreas.add(ca); else selectedAreas.delete(ca);
+          renderAreaPills();
+          updateDashboard();
+        });
+        pillsContainer.appendChild(lbl);
+      });
+    }
+
+    function setAreas(list) {
+      selectedAreas.clear();
+      list.forEach(ca => { if (data.region_summaries[ca]) selectedAreas.add(ca); });
+      renderAreaPills();
+      updateDashboard();
+    }
+    document.getElementById('btnSelectAll').addEventListener('click', () => setAreas(data.catch_areas));
+    document.getElementById('btnClearAll').addEventListener('click', () => setAreas([]));
+    document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => setAreas(presets[b.dataset.preset])));
+
+    // Least-squares quadratic fit y = a x^2 + b x + c (x centered for stability)
+    function fitQuadratic(points) {
+      if (points.length < 3) return null;
+      const x0 = points.reduce((s, p) => s + p.x, 0) / points.length;
+      let S = [0, 0, 0, 0, 0], T = [0, 0, 0];
+      points.forEach(p => {
+        const x = p.x - x0;
+        let xp = 1;
+        for (let k = 0; k < 5; k++) { S[k] += xp; if (k < 3) T[k] += xp * p.y; xp *= x; }
+      });
+      const M = [[S[0], S[1], S[2], T[0]], [S[1], S[2], S[3], T[1]], [S[2], S[3], S[4], T[2]]];
+      for (let i = 0; i < 3; i++) {
+        let maxR = i;
+        for (let r = i + 1; r < 3; r++) if (Math.abs(M[r][i]) > Math.abs(M[maxR][i])) maxR = r;
+        [M[i], M[maxR]] = [M[maxR], M[i]];
+        const piv = M[i][i];
+        if (Math.abs(piv) < 1e-12) return null;
+        for (let c = i; c <= 3; c++) M[i][c] /= piv;
+        for (let r = 0; r < 3; r++) if (r !== i) { const f = M[r][i]; for (let c = i; c <= 3; c++) M[r][c] -= f * M[i][c]; }
+      }
+      return { c: M[0][3], b: M[1][3], a: M[2][3], x0 };
+    }
+
+    function evalTrend(fit, x, lastX, cap) {
+      if (!fit) return null;
+      let xe = x;
+      // In the forecast zone, don't let an upward-opening parabola bend back up
+      // after its minimum: hold the value flat past the vertex instead.
+      if (x > lastX && fit.a > 0) {
+        const vx = fit.x0 - fit.b / (2 * fit.a);
+        if (vx > lastX && x > vx) xe = vx;
+        else if (vx <= lastX) xe = lastX;
+      }
+      const u = xe - fit.x0;
+      let v = fit.c + fit.b * u + fit.a * u * u;
+      if (v < 0) v = 0;
+      if (cap != null && v > cap) v = cap;
+      return v;
+    }
+
+    function metricValue(metric, fish, anglers, boats, sampledDays) {
+      if (metric === 'RAW') return fish / sampledDays;
+      if (metric === 'EFFORT') return anglers / sampledDays;
+      if (metric === 'CPUE_BOAT') return boats > 0 ? fish / boats : 0;
+      return anglers > 0 ? fish / anglers : 0;
+    }
+
+    function buildSeries(speciesMode, metric, smooth) {
+      const N = data.num_factual, NT = data.all_dates.length;
+      const out = [];
+      [...selectedAreas].forEach(ca => {
+        const reg = data.region_summaries[ca];
+        if (!reg) return;
+        const sp = speciesMode === 'DUAL' ? [['Kings', reg.daily_chinook, true], ['Coho', reg.daily_coho, false]]
+                 : speciesMode === 'CHINOOK' ? [['Kings', reg.daily_chinook, false]] : [['Coho', reg.daily_coho, false]];
+        sp.forEach(([spName, fishArr, dashed]) => {
+          const actual = new Array(N).fill(null);
+          const daily = new Array(N).fill(null);
+          for (let i = 0; i < N; i++) {
+            if (reg.daily_anglers[i] > 0) daily[i] = metricValue(metric, fishArr[i], reg.daily_anglers[i], reg.daily_boats[i], 1);
+            if (!smooth) { actual[i] = daily[i]; continue; }
+            let f = 0, a = 0, b = 0, d = 0;
+            for (let j = Math.max(0, i - 6); j <= i; j++) {
+              if (reg.daily_anglers[j] > 0) { f += fishArr[j]; a += reg.daily_anglers[j]; b += reg.daily_boats[j]; d++; }
+            }
+            if (d > 0) actual[i] = metricValue(metric, f, a, b, d);
+          }
+          const lo = Math.max(0, N - FIT_WINDOW);
+          const pts = [];
+          for (let i = lo; i < N; i++) if (daily[i] !== null) pts.push({ x: i, y: daily[i] });
+          const fit = pts.length >= 5 ? fitQuadratic(pts) : null;
+          const obsMax = Math.max(0, ...pts.map(p => p.y));
+          const cap = obsMax * 1.5;
+          const trend = new Array(NT).fill(null);
+          if (fit) for (let i = lo; i < NT; i++) trend[i] = evalTrend(fit, i, N - 1, cap);
+          out.push({ ca, name: `${getShortName(ca)} ${spName}`, color: getAreaColor(ca), dashed, actual, trend, fitStart: lo });
+        });
+      });
+      return out;
+    }
+
+    let chartState = null;
+
+    function renderMainChart(hoverIdx = null) {
+      const speciesMode = speciesModeSelect.value, metric = metricModeSelect.value, displayMode = displayModeSelect.value;
+      const canvas = document.getElementById('mainChartCanvas');
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = rect.width, h = rect.height;
+      const padL = 48, padR = 16, padT = 24, padB = 34;
+      const cw = w - padL - padR, ch = h - padT - padB;
+      ctx.clearRect(0, 0, w, h);
+
+      const N = data.num_factual, NT = data.all_dates.length;
+      const isCpue = metric.startsWith('CPUE');
+      const legend = document.getElementById('chartLegend');
+      legend.innerHTML = '';
+
+      if (selectedAreas.size === 0) {
+        ctx.fillStyle = '#94a3b8'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('No areas selected. Check one or more catch areas above.', w / 2, h / 2);
+        document.getElementById('statForecastSummary').textContent = 'No areas selected';
+        chartState = null;
+        return;
+      }
+
+      const series = buildSeries(speciesMode, metric, smoothToggle.checked);
+      const showActual = displayMode !== 'TREND', showTrend = displayMode !== 'ACTUAL';
+      let maxV = 0.01;
+      series.forEach(s => {
+        if (showActual) s.actual.forEach(v => { if (v !== null && v > maxV) maxV = v; });
+        if (showTrend) s.trend.forEach(v => { if (v !== null && v > maxV) maxV = v; });
+      });
+      maxV *= 1.1;
+
+      const getX = i => padL + (i / (NT - 1)) * cw;
+      const getY = v => padT + ch - (v / maxV) * ch;
+      const xB = getX(N - 1);
+
+      // Forecast zone
+      ctx.fillStyle = 'rgba(56,189,248,0.06)';
+      ctx.fillRect(xB, padT, padL + cw - xB, ch);
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(xB, padT); ctx.lineTo(xB, padT + ch); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('FORECAST →', Math.min(xB + 6, w - padR - 70), padT - 8);
+
+      // Grid + y labels
+      ctx.strokeStyle = '#334155'; ctx.fillStyle = '#94a3b8'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
+      for (let i = 0; i <= 4; i++) {
+        const v = (maxV / 4) * i, y = getY(v);
+        ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillText(isCpue ? v.toFixed(2) : Math.round(v).toLocaleString(), padL - 6, y + 4);
+      }
+      // x labels: weekly ticks scaled to width
+      ctx.textAlign = 'center';
+      const step = Math.max(1, Math.ceil(NT / Math.max(2, cw / 64)));
+      for (let i = 0; i < NT; i += step) {
+        ctx.fillStyle = i >= N ? '#38bdf8' : '#94a3b8';
+        ctx.fillText(data.all_dates[i], getX(i), h - padB + 18);
+      }
+
+      function path(vals, from) {
+        ctx.beginPath();
+        let started = false;
+        for (let i = from; i < vals.length; i++) {
+          if (vals[i] === null) continue;
+          const x = getX(i), y = getY(vals[i]);
+          if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      series.forEach(s => {
+        ctx.strokeStyle = s.color;
+        if (showTrend) {
+          ctx.globalAlpha = 0.9; ctx.lineWidth = 2; ctx.setLineDash([2, 4]);
+          path(s.trend, s.fitStart);
+          ctx.setLineDash([]); ctx.globalAlpha = 1;
+          const last = s.trend[NT - 1];
+          if (last !== null) { ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(getX(NT - 1), getY(last), 3.5, 0, Math.PI * 2); ctx.fill(); }
+        }
+        if (showActual) {
+          ctx.lineWidth = 2.25; ctx.setLineDash(s.dashed ? [7, 4] : []);
+          path(s.actual, 0);
+          ctx.setLineDash([]);
+        }
+      });
+
+      // Hover crosshair + tooltip
+      const tip = document.getElementById('chartTooltip');
+      if (hoverIdx !== null && hoverIdx >= 0 && hoverIdx < NT) {
+        const hx = getX(hoverIdx);
+        ctx.strokeStyle = 'rgba(248,250,252,0.35)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(hx, padT); ctx.lineTo(hx, padT + ch); ctx.stroke();
+        const fmt = v => v === null ? '–' : (isCpue ? v.toFixed(2) : Math.round(v).toLocaleString());
+        const future = hoverIdx >= N;
+        let rows = '';
+        series.forEach(s => {
+          const a = hoverIdx < N ? s.actual[hoverIdx] : null;
+          const t = s.trend[hoverIdx];
+          if (showActual && a !== null) { ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(hx, getY(a), 3.5, 0, Math.PI * 2); ctx.fill(); }
+          rows += `<div class="flex items-center justify-between gap-3"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full inline-block" style="background:${s.color}"></span>${esc(s.name)}</span>
+                   <span class="font-mono text-slate-100">${future ? `<span class="text-sky-300">${fmt(t)}</span>` : fmt(a)}${!future && showTrend && t !== null ? ` <span class="text-slate-500">(trend ${fmt(t)})</span>` : ''}</span></div>`;
+        });
+        const label = metricModeSelect.options[metricModeSelect.selectedIndex].text;
+        tip.innerHTML = `<div class="font-semibold text-slate-200 mb-1">${esc(data.all_dates[hoverIdx])}${future ? ' <span class="text-sky-300">(forecast)</span>' : ''}</div>
+                         <div class="text-[10px] text-slate-500 mb-1">${esc(label)}${smoothToggle.checked && !future ? ' · 7-day avg' : ''}</div>${rows}`;
+        tip.classList.remove('hidden');
+        const tw = tip.offsetWidth;
+        tip.style.left = (hx + 12 + tw > w ? hx - 12 - tw : hx + 12) + 'px';
+        tip.style.top = padT + 'px';
+      } else {
+        tip.classList.add('hidden');
+      }
+
+      series.forEach(s => {
+        const item = document.createElement('span');
+        item.className = 'flex items-center gap-1.5';
+        item.innerHTML = `<span class="w-3 h-2.5 rounded-sm inline-block" style="background:${s.color}; opacity:${s.dashed ? 0.6 : 1}"></span><span class="text-slate-200">${esc(s.name)}</span>`;
+        legend.appendChild(item);
+      });
+
+      // Outlook KPI: compare fitted value today vs +14 days for the first series with a fit
+      const s0 = series.find(s => s.trend[N - 1] !== null);
+      const sumEl = document.getElementById('statForecastSummary'), subEl = document.getElementById('statForecastSub');
+      if (s0) {
+        const now = s0.trend[N - 1], fut = s0.trend[NT - 1];
+        const arrow = fut > now * 1.1 ? '↑' : fut < now * 0.9 ? '↓' : '→';
+        const f = v => isCpue ? v.toFixed(2) : Math.round(v).toLocaleString();
+        sumEl.textContent = `${s0.name}: ${f(now)} ${arrow} ${f(fut)}`;
+        subEl.textContent = `Trend now vs ${data.all_dates[NT - 1]} · fit on last ${FIT_WINDOW} days`;
+      } else {
+        sumEl.textContent = 'Not enough recent data';
+        subEl.textContent = `Needs 5+ sampled days in the last ${FIT_WINDOW}`;
+      }
+      chartState = { padL, cw, NT };
+    }
+
+    const canvasEl = document.getElementById('mainChartCanvas');
+    function hoverFromEvent(e) {
+      if (!chartState) return null;
+      const r = canvasEl.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      const i = Math.round(((x - chartState.padL) / chartState.cw) * (chartState.NT - 1));
+      return Math.min(chartState.NT - 1, Math.max(0, i));
+    }
+    canvasEl.addEventListener('mousemove', e => renderMainChart(hoverFromEvent(e)));
+    canvasEl.addEventListener('touchmove', e => renderMainChart(hoverFromEvent(e)), { passive: true });
+    canvasEl.addEventListener('mouseleave', () => renderMainChart(null));
+
+    function renderRegionTable() {
+      const tbody = document.getElementById('regionTableBody');
+      tbody.innerHTML = '';
+      const list = [...selectedAreas].filter(ca => data.region_summaries[ca])
+        .sort((a, b) => data.region_summaries[b].total_salmon - data.region_summaries[a].total_salmon);
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-4 text-center text-slate-500 font-sans">No catch areas selected.</td></tr>';
+        return;
+      }
+      const f2 = v => v === null ? '–' : (v > 0 && v < 0.01 ? '<0.01' : v.toFixed(2));
+      list.forEach(ca => {
+        const r = data.region_summaries[ca];
+        let mom = '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-500">Low sample</span>';
+        if (r.recent_anglers >= 20 && r.prior_anglers >= 20 && r.recent_coho_cpue !== null && r.prior_coho_cpue !== null) {
+          const ratio = r.prior_coho_cpue > 0 ? r.recent_coho_cpue / r.prior_coho_cpue : (r.recent_coho_cpue > 0 ? 9 : 1);
+          const pct = r.prior_coho_cpue > 0 ? ` ${ratio >= 1 ? '+' : ''}${Math.round((ratio - 1) * 100)}%` : '';
+          if (ratio >= 1.2) mom = `<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">🔥 Rising${pct}</span>`;
+          else if (ratio <= 0.8) mom = `<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-300 font-medium">❄️ Cooling${pct}</span>`;
+          else mom = `<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-300">➡️ Steady${pct}</span>`;
+        }
+        let king = '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-500">None / not sampled</span>';
+        if (r.recent14_anglers > 0) {
+          king = r.recent14_chinook > 0
+            ? `<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">${r.recent14_chinook} kept · ${f2(r.recent14_king_cpue)}/angler</span>`
+            : '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400">0 kept</span>';
+        }
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 transition-colors';
+        tr.innerHTML = `
+          <td class="px-4 py-2.5 font-sans font-semibold text-slate-100"><span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background-color:${getAreaColor(ca)}"></span><span class="sm:hidden">${esc(getShortName(ca))}</span><span class="hidden sm:inline">${esc(ca)}</span></span></td>
+          <td class="px-4 py-2.5 text-right font-bold text-amber-400">${r.total_chinook.toLocaleString()}</td>
+          <td class="px-4 py-2.5 text-right font-bold text-cyan-400">${r.total_coho.toLocaleString()}</td>
+          <td class="px-4 py-2.5 text-right text-slate-400">${r.total_anglers.toLocaleString()}</td>
+          <td class="px-4 py-2.5 text-right text-cyan-400">${f2(r.coho_cpue)}</td>
+          <td class="px-4 py-2.5 text-right font-bold text-cyan-300">${f2(r.recent_coho_cpue)} <span class="text-slate-500 font-normal text-xs">(${r.recent_anglers})</span></td>
+          <td class="px-4 py-2.5 text-center font-sans whitespace-nowrap">${mom}</td>
+          <td class="px-4 py-2.5 text-center font-sans whitespace-nowrap">${king}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRawTable() {
+      const tbody = document.getElementById('rawTableBody');
+      const q = searchInput.value.toLowerCase().trim();
+      const filtered = data.raw_records.filter(r => {
+        if (!selectedAreas.has(r.catch_area)) return false;
+        if (!q) return true;
+        return r.date.toLowerCase().includes(q) || r.ramp.toLowerCase().includes(q) || r.catch_area.toLowerCase().includes(q);
+      });
+      document.getElementById('recordCount').textContent = filtered.length > RAW_LIMIT
+        ? `Showing newest ${RAW_LIMIT} of ${filtered.length.toLocaleString()} matching records — refine the filter to see more`
+        : `${filtered.length.toLocaleString()} matching records`;
+      tbody.innerHTML = filtered.slice(0, RAW_LIMIT).map(r => {
+        const c = r.anglers > 0 ? ((r.chinook + r.coho) / r.anglers).toFixed(2) : '–';
+        return `<tr class="hover:bg-slate-800/50 transition-colors font-mono">
+          <td class="px-4 py-2 text-slate-300 font-sans whitespace-nowrap">${esc(r.date)}</td>
+          <td class="px-4 py-2 text-slate-200 font-sans">${esc(r.ramp)}</td>
+          <td class="px-4 py-2 text-slate-400 font-sans">${esc(r.catch_area)}</td>
+          <td class="px-4 py-2 text-right text-slate-300">${r.anglers}</td>
+          <td class="px-4 py-2 text-right text-slate-400">${r.interviews}</td>
+          <td class="px-4 py-2 text-right font-bold text-amber-400">${r.chinook}</td>
+          <td class="px-4 py-2 text-right font-bold text-cyan-400">${r.coho}</td>
+          <td class="px-4 py-2 text-right font-bold text-emerald-400">${c}</td></tr>`;
+      }).join('');
+    }
+
+    function updateDashboard() {
+      let k = 0, c = 0, a = 0, b = 0;
+      selectedAreas.forEach(ca => {
+        const r = data.region_summaries[ca];
+        if (r) { k += r.total_chinook; c += r.total_coho; a += r.total_anglers; b += r.total_boats; }
+      });
+      document.getElementById('statKings').textContent = k.toLocaleString();
+      document.getElementById('kingBadge').textContent = `${a ? (k / a).toFixed(2) : '0.00'} / angler`;
+      document.getElementById('statCoho').textContent = c.toLocaleString();
+      document.getElementById('cohoBadge').textContent = `${a ? (c / a).toFixed(2) : '0.00'} / angler`;
+      document.getElementById('statAnglers').textContent = a.toLocaleString();
+      document.getElementById('boatBadge').textContent = `${b.toLocaleString()} boats`;
+      renderMainChart();
+      renderRegionTable();
+      renderRawTable();
+      writeState();
+    }
+
+    [speciesModeSelect, metricModeSelect, displayModeSelect, smoothToggle].forEach(el => el.addEventListener('change', updateDashboard));
+    searchInput.addEventListener('input', renderRawTable);
+    let resizeTimer;
+    window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => renderMainChart(), 100); });
+
+    renderAreaPills();
+    updateDashboard();
+  </script>
+</body>
+</html>

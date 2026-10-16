@@ -13,7 +13,7 @@ import json
 import os
 import time
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from bs4 import BeautifulSoup
 
 BASE_URL = "https://wdfw.wa.gov/fishing/reports/creel/puget"
@@ -56,7 +56,7 @@ def fetch(url, retries=3):
 def scrape_pages(sample_date=3, max_pages=60):
     records = []
     # WDFW's CDN caches each page URL; a unique query param guarantees fresh pages.
-    bust = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    bust = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     print(f"Scraping WDFW creel reports (sample_date={sample_date}, max_pages={max_pages})...")
 
     for page in range(max_pages):
