@@ -1,0 +1,52 @@
+name: Refresh creel data
+
+on:
+  schedule:
+    # Daily at 14:17 UTC (7:17am Pacific in summer, 6:17am in winter)
+    - cron: "17 14 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/refresh-data.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install beautifulsoup4
+
+      - name: Scrape last 60 days of WDFW creel reports
+        run: python3 scripts/scrape_wdfw_creel.py --days 60
+
+      - name: Rebuild dashboard
+        run: python3 scripts/generate_dashboard.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ index.html assets/
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+          LATEST=$(python3 -c "import json;from datetime import datetime as d;r=json.load(open('data/creel_data_2026_summer.json'));print(max(d.strptime(x['date'],'%b %d, %Y') for x in r).strftime('%b %-d, %Y'))")
+          git commit -m "Refresh creel data through ${LATEST}"
+          git pull --rebase origin main
+          git push
