@@ -1,5 +1,20 @@
 [
   {
+    "date": "Oct 20, 2026",
+    "ramp": "Dungeness Bay Public Ramp",
+    "catch_area": "Area 6, East Juan de Fuca Strait",
+    "interviews": 1,
+    "anglers": 1,
+    "chinook_per_angler": 0.0,
+    "chinook": 0,
+    "coho": 0,
+    "chum": 0,
+    "pink": 0,
+    "sockeye": 0,
+    "lingcod": 0,
+    "halibut": 0
+  },
+  {
     "date": "Oct 19, 2026",
     "ramp": "Hartstine Is. Ramp (aka Latimer's Landing)",
     "catch_area": "Area 13, South Puget Sound",
