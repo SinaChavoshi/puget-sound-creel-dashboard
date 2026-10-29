@@ -1,5 +1,20 @@
 [
   {
+    "date": "Oct 28, 2026",
+    "ramp": "Gig Harbor Ramp",
+    "catch_area": "Area 11, Tacoma-Vashon Island",
+    "interviews": 1,
+    "anglers": 3,
+    "chinook_per_angler": 0.0,
+    "chinook": 0,
+    "coho": 0,
+    "chum": 0,
+    "pink": 0,
+    "sockeye": 0,
+    "lingcod": 0,
+    "halibut": 0
+  },
+  {
     "date": "Oct 27, 2026",
     "ramp": "Point Defiance Public Ramp",
     "catch_area": "Area 13, South Puget Sound",
@@ -11898,9 +11913,9 @@
     "date": "Sep 12, 2026",
     "ramp": "Bellingham Ramp (Glenn St.) Squalicum Harbor",
     "catch_area": "Bellingham Bay",
-    "interviews": 49,
-    "anglers": 136,
-    "chinook_per_angler": 0.22,
+    "interviews": 50,
+    "anglers": 142,
+    "chinook_per_angler": 0.21,
     "chinook": 30,
     "coho": 93,
     "chum": 0,
